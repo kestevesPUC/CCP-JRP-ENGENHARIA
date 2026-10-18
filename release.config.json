@@ -2,5 +2,6 @@
   "provider": "github",
   "owner": "kestevesPUC",
   "repo": "CCP-JRP-ENGENHARIA",
-  "private": false
+  "private": false,
+  "releaseType": "release"
 }

@@ -22,12 +22,16 @@
 
 O desenvolvedor escolhe onde as versões ficam publicadas. Copie `release.config.example.json` para **`release.config.json`** e mantenha UM bloco:
 
-**GitHub Releases** (recomendado)
+**GitHub Releases** (configurado neste projeto: `kestevesPUC/CCP-JRP-ENGENHARIA`)
 ```json
-{ "provider": "github", "owner": "SEU-USUARIO", "repo": "SEU-REPOSITORIO", "private": false }
+{ "provider": "github", "owner": "kestevesPUC", "repo": "CCP-JRP-ENGENHARIA", "private": false, "releaseType": "release" }
 ```
-Defina a variável de ambiente `GH_TOKEN` (token com permissão de escrever *releases*) antes de publicar. Repositório privado: `"private": true`
-e o token também precisa estar disponível nos computadores (veja a documentação do electron-updater) — prefira repositório público só para os binários.
+- `releaseType: "release"` publica a versão direto (sem ficar como *rascunho*, que os aplicativos não enxergam).
+- **Para publicar** (só no computador do desenvolvedor): crie um token em GitHub → *Settings → Developer settings → Personal access tokens → Fine-grained*,
+  com acesso a este repositório e permissão **Contents: Read and write**, e o defina antes de rodar o release:
+  `setx GH_TOKEN "github_pat_..."` (abra um novo terminal) ou, só na sessão atual, `$env:GH_TOKEN = "github_pat_..."` no PowerShell. **Nunca** coloque o token em arquivos do projeto.
+- **Para os computadores se atualizarem** o repositório precisa ser **público** (ou use um segundo repositório público só para os binários, apontando `owner`/`repo` para ele).
+  Com repositório privado, cada computador precisaria de um token embutido — não recomendado. O código-fonte versionado não contém dados da empresa (`data/` e `*.sqlite` ficam fora do Git).
 
 **Servidor próprio / site estático**
 ```json
