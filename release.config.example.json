@@ -1,0 +1,5 @@
+{
+  "_leia-me": "Copie para release.config.json e deixe apenas UM dos blocos abaixo (apague os campos que começam com _). Detalhes em docs/publicacao.md.",
+  "_opcao_github": { "provider": "github", "owner": "SEU-USUARIO", "repo": "SEU-REPOSITORIO", "private": false },
+  "_opcao_servidor_proprio": { "provider": "generic", "url": "https://seu-site.com/ccp-atualizacoes/" }
+}

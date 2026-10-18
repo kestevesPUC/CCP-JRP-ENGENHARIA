@@ -1,0 +1,18 @@
+# Dependências e artefatos de build
+node_modules/
+dist/
+dist-instalador/
+dist-novo/
+
+# DADOS REAIS da empresa (banco importado do sistema antigo, backups) — nunca versionar
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+CCP Backups/
+
+# Segredos e arquivos locais
+.env
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,27 @@
+{
+  "name": "ccp-node",
+  "version": "2.1.0",
+  "description": "CCP — Controle de Contas a Pagar (JRP Engenharia), recriação em Node.js do sistema Clipper original",
+  "private": true,
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "desktop": "electron .",
+    "test": "node --test --test-timeout=30000 --test-reporter=spec test/*.test.js",
+    "import": "node scripts/import-legacy.js",
+    "dist": "electron-builder --config electron-builder.config.js --win --publish never",
+    "release": "electron-builder --config electron-builder.config.js --win --publish always",
+    "versao:patch": "npm version patch --no-git-tag-version",
+    "versao:minor": "npm version minor --no-git-tag-version"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}
