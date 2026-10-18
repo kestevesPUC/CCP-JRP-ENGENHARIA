@@ -12,7 +12,8 @@
     "dist": "electron-builder --config electron-builder.config.js --win --publish never",
     "release": "electron-builder --config electron-builder.config.js --win --publish always",
     "versao:patch": "npm version patch --no-git-tag-version",
-    "versao:minor": "npm version minor --no-git-tag-version"
+    "versao:minor": "npm version minor --no-git-tag-version",
+    "publicar": "npm test && npm run versao:patch && npm run release"
   },
   "engines": {
     "node": ">=22.13"

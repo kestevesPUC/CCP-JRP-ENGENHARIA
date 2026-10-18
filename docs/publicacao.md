@@ -43,15 +43,27 @@ Sem `release.config.json` o app é gerado normalmente, porém sem atualização 
 
 ## Publicar uma nova versão
 
+**Roteiro de sempre** (com `GH_TOKEN` definido, veja acima):
+
 ```bash
-npm test                      # tudo verde?
-npm run versao:patch          # 2.1.0 -> 2.1.1  (ou versao:minor para 2.2.0)
-npm run release               # GitHub: gera e publica a release (precisa GH_TOKEN)
-# ou, com servidor próprio:
-npm run dist                  # e envie dist/latest.yml + Setup + blockmap para a URL configurada
+git add -A && git commit -m "descreva a mudança"   # guarde o código
+npm run publicar                                   # testa, sobe a versão (patch) e publica a release no GitHub
+git push                                           # envia o código e a nova versão do package.json
 ```
 
-A **versão do `package.json` precisa ser maior** que a instalada, senão ninguém recebe a atualização.
+`npm run publicar` = `npm test` → `npm run versao:patch` (2.1.0 → 2.1.1) → `npm run release` (compila instalador e portátil e cria a release `v2.1.1` no GitHub, anexando
+`Setup.exe`, `.blockmap` e `latest.yml`). Para uma mudança maior use antes `npm run versao:minor` (2.1.0 → 2.2.0) e depois `npm run release`.
+
+Só compilar, sem publicar: `npm run dist` (com o programa fechado). Com servidor próprio (provider `generic`): rode `npm run dist` e envie `dist/latest.yml` + `Setup` + `.blockmap` para a URL.
+
+### Atualizar sem o usuário reinstalar
+
+É o fluxo normal: os programas instalados **baixam a versão nova sozinhos** (veja abaixo). Regras:
+
+- **A versão do `package.json` precisa ser MAIOR** que a instalada. Corrigiu algo? Publique 2.1.1, nunca reaproveite 2.1.0: quem já tem 2.1.0 não enxerga uma release com o mesmo número.
+- A primeira versão com o canal configurado precisa ser instalada **manualmente uma vez** em cada computador (a 2.1.0 deste projeto já foi gerada assim). Dali em diante, tudo é automático.
+- Se uma release saiu com problema: publique uma versão corrigida (2.1.2). Para retirar a ruim, apague a release no GitHub (*Releases → ⋯ → Delete*) — quem já atualizou fica com ela até receber a próxima.
+- Os dados e as migrações do banco não exigem reinstalação: o banco é atualizado na primeira abertura da versão nova.
 
 ## O que acontece nos computadores
 
