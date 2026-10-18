@@ -1,9 +1,10 @@
 import { esc } from '../format.js';
 import { openDialog } from '../ui.js';
+import { maskAttrs, formatMoneyInput } from '../masks.js';
 
 /**
  * Modal de filtros específicos de uma tela.
- * Campos: { name, label, type: 'select'|'text'|'date'|'number', options?: {value,label}[], placeholder? }.
+ * Campos: { name, label, type: 'select'|'text'|'date'|'number'|'money', options?: {value,label}[], placeholder? }.
  * `onApply(values)` recebe só os campos preenchidos; "Limpar filtros" aplica `defaults`.
  */
 export function openFilterDialog({ title = 'Filtros', fields, values, defaults = {}, onApply }) {
@@ -12,6 +13,7 @@ export function openFilterDialog({ title = 'Filtros', fields, values, defaults =
     if (field.type === 'select') {
       return `<select name="${field.name}">${field.options.map((o) => `<option value="${esc(o.value)}" ${String(o.value) === String(value) ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`;
     }
+    if (field.type === 'money') return `<input name="${field.name}" ${maskAttrs('money')} value="${esc(formatMoneyInput(value))}">`;
     const step = field.type === 'number' ? ' step="0.01" min="0"' : '';
     return `<input type="${field.type}" name="${field.name}" value="${esc(value)}" placeholder="${esc(field.placeholder || '')}"${step}>`;
   };

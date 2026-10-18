@@ -1,10 +1,11 @@
 'use strict';
 
 // Colunas sem o BLOB da foto (carregado só sob demanda).
-const COLUMNS = 'id, usuario, nivel, senha_hash, must_change, data_cad, foto_em';
+const COLUMNS = 'id, usuario, nivel, senha_hash, must_change, data_cad, foto_em, nome, email, telefone, nascimento';
 
 const toEntity = (row) => row && {
   id: row.id, usuario: row.usuario, nivel: row.nivel, senha: row.senha_hash, mustChange: !!row.must_change, dataCad: row.data_cad, fotoEm: row.foto_em,
+  nome: row.nome, email: row.email, telefone: row.telefone, nascimento: row.nascimento,
 };
 
 class UsuarioRepository {
@@ -31,14 +32,20 @@ class UsuarioRepository {
 
   /** @param {{id?:number, usuario:string, nivel:string, senha:string, mustChange?:boolean, dataCad?:string}} u */
   create(u) {
-    const cols = ['usuario', 'nivel', 'senha_hash', 'must_change', 'data_cad'];
-    const values = [u.usuario, u.nivel, u.senha, u.mustChange === false ? 0 : 1, u.dataCad || new Date().toISOString().slice(0, 10)];
+    const cols = ['usuario', 'nivel', 'senha_hash', 'must_change', 'data_cad', 'nome', 'email', 'telefone', 'nascimento'];
+    const values = [u.usuario, u.nivel, u.senha, u.mustChange === false ? 0 : 1, u.dataCad || new Date().toISOString().slice(0, 10),
+      u.nome || '', u.email || '', u.telefone || '', u.nascimento || ''];
     if (u.id) {
       cols.unshift('id');
       values.unshift(u.id);
     }
     const { lastInsertRowid } = this.db.prepare(`INSERT INTO usuarios (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`).run(...values);
     return this.findById(Number(lastInsertRowid));
+  }
+
+  updateProfile(id, { nome, email, telefone, nascimento }) {
+    this.db.prepare('UPDATE usuarios SET nome = ?, email = ?, telefone = ?, nascimento = ? WHERE id = ?').run(nome, email, telefone, nascimento, Number(id));
+    return this.findById(id);
   }
 
   updatePassword(id, senhaHash, mustChange) {

@@ -80,6 +80,14 @@ const MIGRATIONS = [
   CREATE TRIGGER auditoria_sem_delete BEFORE DELETE ON auditoria
   BEGIN SELECT RAISE(ABORT, 'Registros de auditoria não podem ser excluídos'); END;
   `,
+  // Dados pessoais dos usuários e data de aniversário (usuários e fornecedores) para os lembretes do painel.
+  `
+  ALTER TABLE usuarios ADD COLUMN nome TEXT NOT NULL DEFAULT '';
+  ALTER TABLE usuarios ADD COLUMN email TEXT NOT NULL DEFAULT '';
+  ALTER TABLE usuarios ADD COLUMN telefone TEXT NOT NULL DEFAULT '';
+  ALTER TABLE usuarios ADD COLUMN nascimento TEXT NOT NULL DEFAULT '';
+  ALTER TABLE fornecedores ADD COLUMN nasc TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 module.exports = MIGRATIONS;

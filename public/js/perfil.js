@@ -1,5 +1,6 @@
 import { api } from './api.js';
 import { esc } from './format.js';
+import { maskAttrs } from './masks.js';
 import { avatarHtml } from './avatar.js';
 import { nivelNome } from './niveis.js';
 import { state } from './state.js';
@@ -35,12 +36,19 @@ export function openProfile() {
         <p><small>A imagem é recortada em quadrado e reduzida automaticamente (PNG, JPEG ou WebP).</small></p>
         ${me.temFoto ? '<button type="button" class="btn alt sm" id="removePhoto">Remover foto</button>' : ''}
       </div>
+    </div>
+    <div class="form-grid">
+      <label>Nome completo<input name="nome" maxlength="60" required autocomplete="off" value="${esc(me.nome)}"></label>
+      <label>E-mail<input name="email" type="email" maxlength="80" autocomplete="off" value="${esc(me.email)}"></label>
+      <label>Telefone<input name="telefone" ${maskAttrs('phone')} value="${esc(me.telefone)}"></label>
+      <label>Data de nascimento<input name="nascimento" type="date" min="1900-01-01" max="${new Date().toISOString().slice(0, 10)}" value="${esc(me.nascimento)}"></label>
     </div>`,
   async (data) => {
-    if (!data.foto) throw new Error('Escolha uma imagem antes de confirmar.');
-    state.me = await api('POST', '/api/me/foto', { foto: data.foto });
+    const { foto, ...dados } = data;
+    if (foto) state.me = await api('POST', '/api/me/foto', { foto });
+    state.me = await api('PUT', '/api/me', dados);
   },
-  () => { announceUpdate(); notify('Foto de perfil atualizada'); });
+  () => { announceUpdate(); notify('Perfil atualizado'); });
 
   document.getElementById('photoFile').onchange = async (event) => {
     const [file] = event.target.files;

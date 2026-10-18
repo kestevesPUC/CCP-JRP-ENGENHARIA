@@ -48,7 +48,7 @@ class ExportService {
         columns: [
           int('Código', (r) => r.id), text('Nome', (r) => r.nome), text('Pessoa', (r) => r.pess), text('CNPJ/CPF', (r) => r.cgc), text('Insc. estadual', (r) => r.insc),
           text('Endereço', (r) => r.ende), text('Bairro', (r) => r.bair), text('Cidade', (r) => r.cida), text('UF', (r) => r.esta), text('CEP', (r) => r.cep),
-          text('Fone', (r) => r.fone), text('Fax', (r) => r.fax), text('Contato 1', (r) => r.con1), text('Contato 2', (r) => r.con2),
+          text('Fone', (r) => r.fone), text('Fax', (r) => r.fax), text('Contato 1', (r) => r.con1), text('Contato 2', (r) => r.con2), text('Aniversário', (r) => r.nasc),
         ],
       },
       naturezas: { rows: () => naturezas.findAll(), columns: [int('Código', (r) => r.id), text('Descrição', (r) => r.nome)] },

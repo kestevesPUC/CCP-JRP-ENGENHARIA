@@ -48,7 +48,7 @@ test('cadastros, usuários, foto e senha também são auditados, sem expor senha
   const { body: forn } = await admin('POST', '/api/fornecedores', { nome: 'Novo Forn' });
   await admin('PUT', `/api/fornecedores/${forn.id}`, { nome: 'Novo Forn 2' });
   await admin('DELETE', `/api/fornecedores/${forn.id}`);
-  await admin('POST', '/api/usuarios', { usuario: 'joao', nivel: 'B', senha: 'senhasecreta1' });
+  await admin('POST', '/api/usuarios', { nome: 'João da Silva', usuario: 'joao', nivel: 'B', senha: 'senhasecreta1' });
   await admin('POST', '/api/me/senha', { atual: 'segredo1', nova: 'novasecreta2' });
 
   const all = await list(admin);

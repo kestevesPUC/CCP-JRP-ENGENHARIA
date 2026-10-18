@@ -1,5 +1,5 @@
 import { api, queryString } from '../api.js';
-import { esc, dt } from '../format.js';
+import { esc, dt, brl } from '../format.js';
 import { icon } from '../icons.js';
 import { view, fail, openDialog } from '../ui.js';
 import { createGrid } from '../components/grid.js';
@@ -20,14 +20,23 @@ const when = (iso) => new Date(iso).toLocaleString('pt-BR');
 const current = { q: '', filters: {} };
 
 const FIELD_LABEL = { dtvec: 'Vencimento', dtemi: 'Emissão', valor: 'Valor', histo: 'Histórico', docum: 'Documento', codig: 'Fornecedor (cód.)', natur: 'Natureza (cód.)', local: 'Local', notaf: 'Nota fiscal', nome: 'Nome', baixa: 'Baixa', dtrep: 'Reprogramado para', valre: 'Valor reprogramado', rateio: 'Rateio', nivel: 'Nível', usuario: 'Usuário' };
-const show = (v) => (v === null || v === undefined || v === '' ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+const MONEY_FIELDS = new Set(['valor', 'valre']);
+const ISO_DATE = /^d{4}-d{2}-d{2}$/;
+/** Formata para leitura: datas dd/mm/aaaa e valores em R$ (campos monetários). */
+const show = (v, key) => {
+  if (v === null || v === undefined || v === '') return '—';
+  if (typeof v === 'object') return JSON.stringify(v);
+  if (typeof v === 'string' && ISO_DATE.test(v)) return dt(v);
+  if (typeof v === 'number' && MONEY_FIELDS.has(key)) return brl(v);
+  return String(v);
+};
 
 /** Tabela "campo: antes → depois" apenas com o que mudou (ou todos os campos quando só há um dos lados). */
 function diffTable(antes, depois) {
   const keys = [...new Set([...Object.keys(antes || {}), ...Object.keys(depois || {})])].filter((k) => !['id', 'fornecedor', 'natureza'].includes(k));
   const rows = keys.filter((k) => !antes || !depois || JSON.stringify(antes[k]) !== JSON.stringify(depois[k]));
   if (!rows.length) return '<p class="chart-sub">Sem alterações de campos.</p>';
-  return `<div class="wrap"><table><thead><tr><th>Campo</th><th>Antes</th><th>Depois</th></tr></thead><tbody>${rows.map((k) => `<tr><td>${esc(FIELD_LABEL[k] || k)}</td><td>${esc(show(antes?.[k]))}</td><td>${esc(show(depois?.[k]))}</td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="wrap"><table><thead><tr><th>Campo</th><th>Antes</th><th>Depois</th></tr></thead><tbody>${rows.map((k) => `<tr><td>${esc(FIELD_LABEL[k] || k)}</td><td>${esc(show(antes?.[k], k))}</td><td>${esc(show(depois?.[k], k))}</td></tr>`).join('')}</tbody></table></div>`;
 }
 
 async function openDetails(entry) {

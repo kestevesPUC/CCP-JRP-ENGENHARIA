@@ -1,5 +1,5 @@
 import { api, queryString } from '../api.js';
-import { esc, brl, dt } from '../format.js';
+import { esc, brl, dt, currentMonthRange } from '../format.js';
 import { icon } from '../icons.js';
 import { state, loadLists, options } from '../state.js';
 import { view, fail } from '../ui.js';
@@ -18,10 +18,11 @@ const renderRelatorio = (r) => `<div class="card"><h2>${esc(r.titulo)}</h2>${r.d
 
 export async function viewRelatorios() {
   await loadLists();
+  const month = currentMonthRange();
   view().innerHTML = `<div class="card noprint"><form id="rf" class="row">
     <label>Relatório<select name="tipo">${RELATORIOS.map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
     <label id="sel">Item<select name="id"></select></label>
-    <label>De<input type="date" name="de"></label><label>Até<input type="date" name="ate"></label>
+    <label>De<input type="date" name="de" value="${month.de}"></label><label>Até<input type="date" name="ate" value="${month.ate}"></label>
     <button class="btn">Gerar</button>
     <button type="button" class="btn alt" id="csv">${icon('download')}Exportar CSV</button>
     <button type="button" class="btn alt" id="print">${icon('printer')}Imprimir</button></form></div><div id="rel"></div>`;

@@ -3,6 +3,12 @@ const ValidationError = require('../domain/errors/ValidationError');
 const { normalizeCnpj, isValidCnpj } = require('../domain/cnpj');
 const { FORNECEDOR_FIELDS } = require('../domain/cadastros');
 
+/** Abertura da empresa ("dd/mm/aaaa" na ReceitaWS) em ISO, usada como data de aniversário da empresa. */
+const openingDate = (text) => {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(text || '').trim());
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : '';
+};
+
 const clip = (text, field) => String(text || '').trim().slice(0, FORNECEDOR_FIELDS[field]);
 
 /** Busca dados de um CNPJ no gateway e os converte para o layout do cadastro de fornecedores. */
@@ -33,6 +39,7 @@ class CnpjLookupService {
       esta: clip(data.uf, 'esta'),
       cep: cep.length === 8 ? `${cep.slice(0, 5)}-${cep.slice(5)}` : '',
       fone: clip(String(data.telefone || '').split('/')[0], 'fone'),
+      nasc: openingDate(data.abertura),
     };
   }
 }

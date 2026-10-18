@@ -1,5 +1,6 @@
 import { esc } from './format.js';
 import { icon } from './icons.js';
+import { unmaskForm } from './masks.js';
 
 export const view = () => document.getElementById('view');
 
@@ -52,7 +53,7 @@ export function openDialog(html, onSubmit, onDone, { confirmLabel = 'Confirmar',
   document.getElementById('df').onsubmit = async (event) => {
     event.preventDefault();
     try {
-      await onSubmit(Object.fromEntries(new FormData(event.target)));
+      await onSubmit(unmaskForm(event.target, Object.fromEntries(new FormData(event.target))));
       dialog.close();
       onDone();
     } catch (error) {

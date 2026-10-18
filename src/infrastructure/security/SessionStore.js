@@ -28,6 +28,11 @@ class SessionStore {
     return session.userId;
   }
 
+  /** Encerra todas as sessões de um usuário (ex.: após o administrador redefinir a senha dele). */
+  destroyForUser(userId) {
+    for (const [token, session] of this.sessions) if (session.userId === Number(userId)) this.sessions.delete(token);
+  }
+
   destroy(token) {
     this.sessions.delete(token);
   }

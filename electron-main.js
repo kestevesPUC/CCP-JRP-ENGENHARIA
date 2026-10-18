@@ -44,7 +44,7 @@ function scheduleMaintenance(updater) {
   timers.push(setInterval(runBackup, 60 * 60 * 1000));
 
   if (updater) {
-    timers.push(setTimeout(() => updater.check(), 15_000));
+    timers.push(setTimeout(() => updater.check(), 5_000));
     timers.push(setInterval(() => updater.check(), SIX_HOURS));
   }
 }
@@ -73,7 +73,10 @@ async function boot() {
   }
 
   Menu.setApplicationMenu(null);
-  win = new BrowserWindow({ icon: path.join(__dirname, 'public', 'img', 'icon.png'), width: 1280, height: 820, title: 'CCP — Contas a Pagar', autoHideMenuBar: true, webPreferences: { contextIsolation: true, sandbox: true } });
+  const windowTitle = `CCP — Contas a Pagar · v${app.getVersion()}`;
+  win = new BrowserWindow({ icon: path.join(__dirname, 'public', 'img', 'icon.png'), width: 1280, height: 820, minWidth: 360, minHeight: 480, title: windowTitle, autoHideMenuBar: true, webPreferences: { contextIsolation: true, sandbox: true } });
+  // A página tem o próprio <title>; mantém na barra do app o nome com a versão.
+  win.on('page-title-updated', (event) => event.preventDefault());
   win.webContents.setWindowOpenHandler(({ url: target }) => {
     shell.openExternal(target);
     return { action: 'deny' };

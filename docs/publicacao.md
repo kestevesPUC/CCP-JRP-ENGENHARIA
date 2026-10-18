@@ -28,8 +28,9 @@ O desenvolvedor escolhe onde as versões ficam publicadas. Copie `release.config
 ```
 - `releaseType: "release"` publica a versão direto (sem ficar como *rascunho*, que os aplicativos não enxergam).
 - **Para publicar** (só no computador do desenvolvedor): crie um token em GitHub → *Settings → Developer settings → Personal access tokens → Fine-grained*,
-  com acesso a este repositório e permissão **Contents: Read and write**, e o defina antes de rodar o release:
-  `setx GH_TOKEN "github_pat_..."` (abra um novo terminal) ou, só na sessão atual, `$env:GH_TOKEN = "github_pat_..."` no PowerShell. **Nunca** coloque o token em arquivos do projeto.
+  com acesso a este repositório e permissão **Contents: Read and write**. Na pasta do projeto crie o arquivo **`.env`** (já ignorado pelo Git; modelo em `.env.example`) com a linha
+  `GH_TOKEN=github_pat_...`. Alternativa: `$env:GH_TOKEN = "github_pat_..."` no PowerShell. **Nunca** coloque o token em arquivos versionados.
+  O comando `npm run publicar` confere o token e o acesso ao repositório **antes** de mexer em qualquer coisa e explica o que falta.
 - **Para os computadores se atualizarem** o repositório precisa ser **público** (ou use um segundo repositório público só para os binários, apontando `owner`/`repo` para ele).
   Com repositório privado, cada computador precisaria de um token embutido — não recomendado. O código-fonte versionado não contém dados da empresa (`data/` e `*.sqlite` ficam fora do Git).
 
@@ -51,8 +52,8 @@ npm run publicar                                   # testa, sobe a versão (patc
 git push                                           # envia o código e a nova versão do package.json
 ```
 
-`npm run publicar` = `npm test` → `npm run versao:patch` (2.1.0 → 2.1.1) → `npm run release` (compila instalador e portátil e cria a release `v2.1.1` no GitHub, anexando
-`Setup.exe`, `.blockmap` e `latest.yml`). Para uma mudança maior use antes `npm run versao:minor` (2.1.0 → 2.2.0) e depois `npm run release`.
+`npm run publicar` (script `scripts/release.js`) = confere token/repositório → `npm test` → sobe a versão (2.1.0 → 2.1.1) → compila e cria a release `v2.1.1` no GitHub, anexando
+`Setup.exe`, `.blockmap` e `latest.yml`). Para uma mudança maior use `npm run publicar:minor` (2.1.0 → 2.2.0). Se a publicação falhar depois de subir a versão, o script **restaura** o número anterior.
 
 Só compilar, sem publicar: `npm run dist` (com o programa fechado). Com servidor próprio (provider `generic`): rode `npm run dist` e envie `dist/latest.yml` + `Setup` + `.blockmap` para a URL.
 

@@ -13,7 +13,9 @@ module.exports = {
   appId: 'br.com.jrpengenharia.ccp',
   productName: 'CCP Contas a Pagar',
   copyright: 'Desenvolvido por Kaio Gomes',
-  files: ['**/*', '!data/**', '!dist/**', '!test/**', '!scripts/**', '!docs/**', '!release.config*.json', '!*.md'],
+  // Lista PERMITIDA (nada além disto entra no instalador): evita empacotar .env (token), pastas de build, dados e documentos.
+  // As dependências de produção (node_modules) são incluídas automaticamente pelo electron-builder.
+  files: ['electron-main.js', 'package.json', 'public/**/*', 'src/**/*'],
   directories: { output: 'dist' },
   ...(publish && { publish }),
   win: {

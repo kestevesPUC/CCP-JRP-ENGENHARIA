@@ -17,13 +17,15 @@ const USO_FIELD = {
 const usoTag = (r) => (r.emUso ? `<span class="tag aberto">${icon('check')}Em uso</span>` : '<span class="tag">—</span>');
 const usoMatches = (r, f) => !f.uso || (f.uso === 'sim') === r.emUso;
 
+import { maskAttrs } from '../masks.js';
+
 const SIMPLE_FIELDS = [['nome', 'Descrição', 25]];
 
 /** Configuração de cada cadastro: formulário, colunas, texto pesquisável e filtros específicos. */
 const RESOURCES = {
   fornecedores: {
     singular: 'fornecedor', plural: 'fornecedores', newLabel: 'Novo fornecedor', placeholder: 'Pesquisar por nome, CNPJ/CPF, cidade ou telefone…',
-    fields: [['cgc', 'CNPJ/CPF', 18], ['nome', 'Nome / Razão social', 52], ['pess', 'Pessoa (F/J)', 1], ['insc', 'Insc. estadual', 16], ['ende', 'Endereço', 40], ['bair', 'Bairro', 15], ['cida', 'Cidade', 19], ['esta', 'UF', 2], ['cep', 'CEP', 9], ['fone', 'Fone', 14], ['fax', 'Fax', 14], ['con1', 'Contato 1', 25], ['con2', 'Contato 2', 25]],
+    fields: [['cgc', 'CNPJ/CPF', 18], ['nome', 'Nome / Razão social', 52], ['pess', 'Tipo de pessoa', 1], ['insc', 'Insc. estadual', 16], ['ende', 'Endereço', 40], ['bair', 'Bairro', 15], ['cida', 'Cidade', 19], ['esta', 'UF', 2], ['cep', 'CEP', 9], ['fone', 'Fone', 15], ['fax', 'Fax', 15], ['con1', 'Contato 1', 25], ['con2', 'Contato 2', 25], ['nasc', 'Aniversário / fundação', 10]],
     columns: [
       { label: 'Cód.', cell: (r) => r.id },
       { label: 'CNPJ/CPF', cell: (r) => esc(r.cgc) },
@@ -34,7 +36,7 @@ const RESOURCES = {
     ],
     searchText: (r) => [r.id, r.nome, r.cgc, r.insc, r.ende, r.bair, r.cida, r.esta, r.cep, r.fone, r.fax, r.con1, r.con2].join(' '),
     filterFields: () => [
-      { name: 'pess', label: 'Tipo de pessoa', type: 'select', options: [{ value: '', label: 'Todas' }, { value: 'F', label: 'Física (F)' }, { value: 'J', label: 'Jurídica (J)' }] },
+      { name: 'pess', label: 'Tipo de pessoa', type: 'select', options: [{ value: '', label: 'Todas' }, { value: 'F', label: 'Física' }, { value: 'J', label: 'Jurídica' }] },
       { name: 'esta', label: 'UF', type: 'text', placeholder: 'Ex.: MG' },
       { name: 'cida', label: 'Cidade contém', type: 'text' },
       USO_FIELD,
@@ -97,8 +99,12 @@ export async function viewCadastro(resource) {
 }
 
 function openForm(resource, cfg, record, reload) {
-  const inputs = cfg.fields.map(([name, label, max]) => `<label>${label}<input name="${name}" maxlength="${max}" value="${esc(record?.[name])}" ${name === 'nome' ? 'required' : ''}
-    ${name === 'cgc' ? 'autocomplete="off" placeholder="00.000.000/0000-00"' : ''}></label>${name === 'cgc' ? '<div id="cnpjStatus" class="field-status" role="status" aria-live="polite"></div>' : ''}`).join('');
+  const personSelect = (name, label) => `<label>${label}<select name="${name}">${[['', 'Selecione'], ['J', 'Jurídica'], ['F', 'Física']]
+    .map(([value, text]) => `<option value="${value}"${record?.[name] === value ? ' selected' : ''}>${text}</option>`).join('')}</select></label>`;
+  const dateField = (name, label) => `<label>${label}<input name="${name}" type="date" min="1900-01-01" max="${new Date().toISOString().slice(0, 10)}" value="${esc(record?.[name])}"></label>`;
+  const MASK_BY_FIELD = { cep: 'cep', fone: 'phone', fax: 'phone' };
+  const inputs = cfg.fields.map(([name, label, max]) => (name === 'pess' ? personSelect(name, label) : name === 'nasc' ? dateField(name, label) : `<label>${label}<input name="${name}" ${MASK_BY_FIELD[name] ? maskAttrs(MASK_BY_FIELD[name]) : `maxlength="${max}"`} value="${esc(record?.[name])}" ${name === 'nome' ? 'required' : ''}
+    ${name === 'cgc' ? 'autocomplete="off" placeholder="00.000.000/0000-00"' : ''}></label>${name === 'cgc' ? '<div id="cnpjStatus" class="field-status" role="status" aria-live="polite"></div>' : ''}`)).join('');
 
   openDialog(
     `<h2>${record ? 'Alterar' : 'Novo'} ${cfg.singular}</h2><div class="form-grid">${inputs}</div>`,

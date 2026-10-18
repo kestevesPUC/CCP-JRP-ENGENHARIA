@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { esc } from './format.js';
+import { esc, today } from './format.js';
 import { icon } from './icons.js';
 import { restoreTheme, themeButton, wireThemeButtons } from './theme.js';
 import { state, loadLists } from './state.js';
@@ -11,6 +11,8 @@ import { viewDashboard } from './views/dashboard.js';
 import { viewAuditoria } from './views/auditoria.js';
 import { openAbout } from './views/sobre.js';
 import { initPasswordToggles } from './components/passwordToggle.js';
+import { initMasks } from './masks.js';
+import { showBirthdayAlert } from './components/birthdayAlert.js';
 import { viewTitulos } from './views/titulos.js';
 import { viewCadastro } from './views/cadastro.js';
 import { viewRelatorios } from './views/relatorios.js';
@@ -80,7 +82,7 @@ async function start() {
     <nav aria-label="Principal">${visible.map(([id, label, ic]) => `<button data-t="${id}">${icon(ic)}<span>${label}</span></button>`).join('')}</nav>
     <div class="foot"><button type="button" class="who" id="profile" title="Meu perfil" aria-label="Meu perfil">${whoHtml(me)}</button>
     ${themeButton()}<button id="out">${icon('out')}<span>Sair</span></button></div></aside>
-    <main class="content"><div class="page-head"><div><h1 id="ptitle"></h1><p id="psub"></p></div></div><div id="msg"></div><div id="view"></div><footer class="app-footer noprint">${CREDIT}<button type="button" class="link-btn" id="about">Sobre e atualizações</button></footer></main></div>`;
+    <main class="content"><div class="page-head"><div><h1 id="ptitle"></h1><p id="psub"></p></div></div><div id="birthdayAlert"></div><div id="msg"></div><div id="view"></div><footer class="app-footer noprint">${CREDIT}<button type="button" class="link-btn" id="about">Sobre e atualizações</button></footer></main></div>`;
   document.querySelectorAll('.side nav button').forEach((b) => { b.onclick = () => show(b.dataset.t); });
   document.getElementById('out').onclick = async () => {
     await api('POST', '/api/logout');
@@ -91,6 +93,7 @@ async function start() {
   document.getElementById('profile').onclick = openProfile;
   document.getElementById('about').onclick = () => openAbout().catch(fail);
   show(current);
+  if (me.nivel === 'A') showBirthdayAlert(document.getElementById('birthdayAlert'), today());
   return undefined;
 }
 
@@ -137,4 +140,5 @@ window.addEventListener('ccp:navigate', (event) => show(event.detail.section));
 
 restoreTheme();
 initPasswordToggles();
+initMasks();
 api('GET', '/api/me').then((me) => { state.me = me; start(); }).catch(() => renderLogin());

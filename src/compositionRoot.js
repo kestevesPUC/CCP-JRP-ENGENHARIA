@@ -23,7 +23,7 @@ const TituloValidator = require('./domain/validation/TituloValidator');
 const BaixaValidator = require('./domain/validation/BaixaValidator');
 const ProfilePhotoValidator = require('./domain/validation/ProfilePhotoValidator');
 const TituloPolicy = require('./domain/policies/TituloPolicy');
-const { FORNECEDOR_FIELDS, NATUREZA_FIELDS, CENTRO_FIELDS } = require('./domain/cadastros');
+const { FORNECEDOR_FIELDS, FORNECEDOR_DATE_FIELDS, NATUREZA_FIELDS, CENTRO_FIELDS } = require('./domain/cadastros');
 
 const AuditTrail = require('./application/AuditTrail');
 const AuditService = require('./application/AuditService');
@@ -33,6 +33,7 @@ const CadastroService = require('./application/CadastroService');
 const TituloService = require('./application/TituloService');
 const RelatorioService = require('./application/RelatorioService');
 const DashboardService = require('./application/DashboardService');
+const BirthdayService = require('./application/BirthdayService');
 const UsuarioService = require('./application/UsuarioService');
 const ExportService = require('./application/ExportService');
 const BackupService = require('./application/BackupService');
@@ -88,7 +89,8 @@ function buildApplication({
 
   const audit = new AuditTrail({ repository: auditRepository });
   const hasher = new PasswordHasher();
-  const authService = new AuthService({ usuarios, hasher, sessions: new SessionStore(), throttle: new LoginThrottle(), audit });
+  const sessions = new SessionStore();
+  const authService = new AuthService({ usuarios, hasher, sessions, throttle: new LoginThrottle(), audit });
   const adminBootstrap = new AdminBootstrap({ usuarios, hasher, audit });
 
   const tituloValidator = new TituloValidator({ fornecedores, naturezas, centros });
@@ -113,7 +115,7 @@ function buildApplication({
 
   const cadastro = (resource, entity, repository, fields, isInUse) => new CadastroController(
     resource,
-    new CadastroService({ entity, repository, sanitizer: new FieldSanitizer(fields), isInUse, audit }),
+    new CadastroService({ entity, repository, sanitizer: new FieldSanitizer(fields, 'nome', fields === FORNECEDOR_FIELDS ? FORNECEDOR_DATE_FIELDS : []), isInUse, audit }),
   );
   const controllers = [
     new AuthController(authService),
@@ -126,10 +128,13 @@ function buildApplication({
     new ImportController(importService),
     new CnpjController(new CnpjLookupService({ gateway: cnpjGateway })),
     new ProfileController(new ProfilePhotoService({ usuarios, validator: new ProfilePhotoValidator(), audit })),
-    new DashboardController(new DashboardService({ dashboard: new DashboardRepository(db), titulos, ...(clock && { clock }) })),
+    new DashboardController(
+      new DashboardService({ dashboard: new DashboardRepository(db), titulos, ...(clock && { clock }) }),
+      new BirthdayService({ usuarios, fornecedores, ...(clock && { clock }) }),
+    ),
     new AuditController(new AuditService({ repository: auditRepository })),
     new SystemController(new SystemService({ version, updater, audit })),
-    new UsuarioController(new UsuarioService({ usuarios, hasher, audit }), new BackupService({ db, audit })),
+    new UsuarioController(new UsuarioService({ usuarios, hasher, audit, sessions }), new BackupService({ db, audit })),
   ];
 
   const router = new Router();

@@ -1,7 +1,8 @@
 'use strict';
 const ValidationError = require('../../domain/errors/ValidationError');
 const FieldSanitizer = require('../../domain/validation/FieldSanitizer');
-const { FORNECEDOR_FIELDS } = require('../../domain/cadastros');
+const { FORNECEDOR_FIELDS, FORNECEDOR_DATE_FIELDS } = require('../../domain/cadastros');
+const { parseDate } = require('./importHelpers');
 const { normalizeCnpj, isValidCnpj, formatDocument } = require('../../domain/cnpj');
 
 const COLUMNS = [
@@ -18,10 +19,11 @@ const COLUMNS = [
   { header: 'Fax', example: '' },
   { header: 'Contato 1', example: 'MARIA' },
   { header: 'Contato 2', example: '' },
+  { header: 'Aniversário', example: '15/03/1990', aliases: ['Nascimento', 'Fundação'] },
 ];
 const FIELD_BY_HEADER = {
   'CNPJ/CPF': 'cgc', Nome: 'nome', 'Pessoa (F/J)': 'pess', 'Inscrição estadual': 'insc', Endereço: 'ende', Bairro: 'bair', Cidade: 'cida', UF: 'esta', CEP: 'cep',
-  Telefone: 'fone', Fax: 'fax', 'Contato 1': 'con1', 'Contato 2': 'con2',
+  Telefone: 'fone', Fax: 'fax', 'Contato 1': 'con1', 'Contato 2': 'con2', Aniversário: 'nasc',
 };
 
 /** Importa fornecedores: valida CNPJ, deduz F/J pelo documento e rejeita documentos já cadastrados. */
@@ -33,7 +35,7 @@ class FornecedorImporter {
     this.auditEntity = 'fornecedor';
     this.columns = COLUMNS;
     this.repository = repository;
-    this.sanitizer = new FieldSanitizer(FORNECEDOR_FIELDS);
+    this.sanitizer = new FieldSanitizer(FORNECEDOR_FIELDS, 'nome', FORNECEDOR_DATE_FIELDS);
   }
 
   begin() {
@@ -42,6 +44,7 @@ class FornecedorImporter {
 
   parse(row, context) {
     const body = Object.fromEntries(Object.entries(FIELD_BY_HEADER).map(([header, field]) => [field, row[header]]));
+    body.nasc = parseDate(body.nasc, 'Aniversário') || '';
     const document = normalizeCnpj(body.cgc);
 
     if (document) {

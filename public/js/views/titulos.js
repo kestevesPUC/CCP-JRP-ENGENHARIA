@@ -7,6 +7,7 @@ import { podeEditar } from '../niveis.js';
 import { createGrid } from '../components/grid.js';
 import { openFilterDialog } from '../components/filterDialog.js';
 import { openImportDialog } from '../components/importDialog.js';
+import { maskAttrs, formatMoneyInput, parseMoney } from '../masks.js';
 
 const DEFAULT_FILTERS = { status: 'abertos' };
 const STATUS_LABEL = { abertos: 'Em aberto', pagos: 'Pagos', '': 'Todos' };
@@ -60,7 +61,7 @@ const filterFields = (lists) => [
   { name: 'natur', label: 'Natureza', type: 'select', options: [{ value: '', label: 'Todas' }, ...lists.naturezas.map((x) => ({ value: x.id, label: `${x.id} - ${x.nome}` }))] },
   { name: 'cc', label: 'Centro de custo', type: 'select', options: [{ value: '', label: 'Todos' }, ...lists.centros.map((x) => ({ value: x.id, label: `${x.id} - ${x.nome}` }))] },
   { name: 'docum', label: 'Nº do título', type: 'text' },
-  { name: 'valor', label: 'Valor exato', type: 'number' },
+  { name: 'valor', label: 'Valor exato (R$)', type: 'money' },
   { name: 'de', label: 'Vencimento de', type: 'date' },
   { name: 'ate', label: 'Vencimento até', type: 'date' },
 ];
@@ -137,13 +138,13 @@ function formTitulo(t, reload) {
   const { lists } = state;
   const rateio = t ? t.rateio : [];
   const ccRows = [0, 1, 2, 3].map((i) => `<div class="row"><label>Centro de custo ${i + 1}<select name="cc${i}">${options(lists.centros, rateio[i]?.cc, '—')}</select></label>
-    <label>Valor<input name="vr${i}" type="number" step="0.01" min="0" value="${rateio[i]?.valor ?? ''}"></label></div>`).join('');
+    <label>Valor (R$)<input name="vr${i}" ${maskAttrs('money')} value="${formatMoneyInput(rateio[i]?.valor)}"></label></div>`).join('');
   openDialog(`<h2>${t ? 'Alterar' : 'Incluir'} título</h2><div class="row">
     <label>Fornecedor<select name="codig" required>${options(lists.fornecedores, t?.codig, 'Selecione')}</select></label>
     <label>Nº documento<input name="docum" maxlength="8" required value="${esc(t?.docum)}"></label>
     <label>Vencimento<input type="date" name="dtvec" required value="${t?.dtvec || today()}"></label>
     <label>Emissão<input type="date" name="dtemi" value="${t?.dtemi || today()}"></label>
-    <label>Valor<input name="valor" type="number" step="0.01" min="0.01" required value="${t?.valor ?? ''}"></label></div>
+    <label>Valor (R$)<input name="valor" ${maskAttrs('money')} required value="${formatMoneyInput(t?.valor)}"></label></div>
     <div class="row"><label style="flex:1">Histórico<input name="histo" maxlength="52" required value="${esc(t?.histo)}"></label>
     <label>Local/forma<input name="local" maxlength="20" value="${esc(t?.local)}"></label><label>Nota fiscal<input name="notaf" maxlength="6" value="${esc(t?.notaf)}"></label>
     <label>Natureza<select name="natur" required>${options(lists.naturezas, t?.natur, 'Selecione')}</select></label></div>
@@ -162,7 +163,7 @@ function formTitulo(t, reload) {
 /** Mostra ao vivo quanto já foi rateado e preenche o valor do 1º centro de custo com o total do título. */
 function wireRateioHelper(form) {
   const info = document.getElementById('rateioInfo');
-  const cents = (name) => Math.round(Number(form.elements[name].value || 0) * 100);
+  const cents = (name) => Math.round(Number(parseMoney(form.elements[name].value) || 0) * 100);
   const update = () => {
     const total = cents('valor');
     const rateado = [0, 1, 2, 3].reduce((sum, i) => sum + (form.elements[`cc${i}`].value ? cents(`vr${i}`) : 0), 0);
@@ -184,11 +185,11 @@ function wireRateioHelper(form) {
 function formBaixa(t, reload) {
   openDialog(`<h2>Baixar título ${esc(t.docum)} — ${esc(t.fornecedor)}</h2><p>Valor do título: <b>${brl(t.valor)}</b> (pago − juros + desconto deve igualar o valor)</p><div class="row">
     <label>Data pagamento<input type="date" name="dtpag" required value="${today()}"></label>
-    <label>Valor pago<input name="receb" type="number" step="0.01" required value="${t.valor}"></label>
-    <label>Juros<input name="juros" type="number" step="0.01" value="0"></label>
-    <label>Desconto<input name="desco" type="number" step="0.01" value="0"></label></div><div class="row">
+    <label>Valor pago (R$)<input name="receb" ${maskAttrs('money')} required value="${formatMoneyInput(t.valor)}"></label>
+    <label>Juros (R$)<input name="juros" ${maskAttrs('money')} value="0,00"></label>
+    <label>Desconto (R$)<input name="desco" ${maskAttrs('money')} value="0,00"></label></div><div class="row">
     <label>Nº cheque<input name="noche" maxlength="6"></label><label>Banco<input name="banco" maxlength="21"></label>
-    <label>Valor do cheque<input name="vrche" type="number" step="0.01" value="${t.valor}"></label></div>`,
+    <label>Valor do cheque (R$)<input name="vrche" ${maskAttrs('money')} value="${formatMoneyInput(t.valor)}"></label></div>`,
   (b) => api('POST', `/api/titulos/${t.id}/baixa`, b),
   async () => { await reload(); notify('Título baixado'); });
 }
@@ -196,7 +197,7 @@ function formBaixa(t, reload) {
 function formReprogramacao(t, reload) {
   openDialog(`<h2>Reprogramar vencimento — ${esc(t.docum)}</h2><div class="row">
     <label>Nova data<input type="date" name="dtrep" required value="${t.dtrep || t.dtvec}"></label>
-    <label>Valor reprogramado<input name="valre" type="number" step="0.01" value="${t.valre || t.valor}"></label></div>`,
+    <label>Valor reprogramado (R$)<input name="valre" ${maskAttrs('money')} value="${formatMoneyInput(t.valre || t.valor)}"></label></div>`,
   (b) => api('POST', `/api/titulos/${t.id}/reprogramar`, b),
   async () => { await reload(); notify('Vencimento reprogramado'); });
 }

@@ -10,7 +10,7 @@ const { createTestApp } = require('./helpers/createTestApp');
 
 const RECEITA = {
   status: 'OK', situacao: 'ATIVA', nome: 'EMPRESA EXEMPLO LTDA', logradouro: 'RUA DAS FLORES', numero: '123', bairro: 'CENTRO',
-  municipio: 'BELO HORIZONTE', uf: 'MG', cep: '30.130-000', telefone: '(31) 3333-4444 / (31) 9999-8888',
+  municipio: 'BELO HORIZONTE', uf: 'MG', cep: '30.130-000', telefone: '(31) 3333-4444 / (31) 9999-8888', abertura: '15/03/2010',
 };
 
 const jsonResponse = (status, body) => ({ status, ok: status >= 200 && status < 300, json: async () => body });
@@ -30,7 +30,7 @@ test('CnpjLookupService converte a resposta da Receita para o cadastro de fornec
   assert.strictEqual(situacao, 'ATIVA');
   assert.deepStrictEqual(fornecedor, {
     cgc: '11.222.333/0001-81', pess: 'J', nome: 'EMPRESA EXEMPLO LTDA', ende: 'RUA DAS FLORES, 123', bair: 'CENTRO',
-    cida: 'BELO HORIZONTE', esta: 'MG', cep: '30130-000', fone: '(31) 3333-4444',
+    cida: 'BELO HORIZONTE', esta: 'MG', cep: '30130-000', fone: '(31) 3333-4444', nasc: '2010-03-15',
   });
 });
 
